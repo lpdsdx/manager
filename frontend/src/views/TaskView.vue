@@ -136,7 +136,9 @@ const form = ref({
 // 获取任务列表
 const fetchTasks = async () => {
   try {
-    const response = await axios.get('/tasks')
+    console.log('开始获取任务列表')
+    const response = await axios.get('/api/tasks')
+    console.log('获取到的任务数据:', response.data)
     tasks.value = response.data
   } catch (error) {
     console.error('获取任务列表失败:', error)
