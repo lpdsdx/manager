@@ -6,9 +6,10 @@
         <p>简约而强大的平台</p>
       </div>
       <el-menu
-        default-active="1"
+        :default-active="activeMenu"
         class="el-menu-vertical"
         :router="true"
+        @select="handleSelect"
       >
         <el-menu-item index="/">
           <el-icon><HomeFilled /></el-icon>
@@ -28,14 +29,34 @@
     </el-aside>
     <el-container>
       <el-main class="main-content">
-        <router-view></router-view>
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script setup>
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { HomeFilled, Management, Tickets } from '@element-plus/icons-vue'
+
+const route = useRoute()
+const router = useRouter()
+const activeMenu = ref(route.path)
+
+// 监听路由变化
+watch(() => route.path, (newPath) => {
+  activeMenu.value = newPath
+})
+
+// 处理菜单选择
+const handleSelect = (index) => {
+  router.push(index)
+}
 </script>
 
 <style>
@@ -90,5 +111,15 @@ body {
 
 #app {
   height: 100vh;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style> 

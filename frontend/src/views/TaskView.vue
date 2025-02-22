@@ -3,7 +3,12 @@
     <base-card class="task-card">
       <template #header>
         <div class="card-header-content">
-          <h3>任务列表</h3>
+          <h3>
+            任务列表
+            <span v-if="filterStatus" class="status-filter">
+              ({{ filterStatus }})
+            </span>
+          </h3>
           <el-button type="primary" class="add-button" @click="showDialog = true">
             <el-icon><CirclePlus /></el-icon>
             新建任务
@@ -141,7 +146,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from '../utils/axios'
 import { 
   CirclePlus, 
@@ -151,11 +157,35 @@ import {
 import BaseCard from '../components/BaseCard.vue'
 import { ElMessage } from 'element-plus'
 
+const route = useRoute()
+const router = useRouter()
 const tasks = ref([])
 const showDialog = ref(false)
 const isEditing = ref(false)
 const currentTaskId = ref(null)
+const filterStatus = ref('')
 
+// 获取任务列表方法 - 移到前面
+const fetchTasks = async () => {
+  try {
+    console.log('开始获取任务列表')
+    const response = await axios.get('/api/tasks')
+    let filteredTasks = response.data
+    
+    // 根据状态过滤任务
+    if (filterStatus.value) {
+      filteredTasks = filteredTasks.filter(task => task.status === filterStatus.value)
+    }
+    
+    tasks.value = filteredTasks
+    console.log('获取到的任务数据:', tasks.value)
+  } catch (error) {
+    console.error('获取任务列表失败:', error)
+    ElMessage.error('获取任务列表失败')
+  }
+}
+
+// 表单数据
 const form = ref({
   title: '',
   description: '',
@@ -163,6 +193,18 @@ const form = ref({
   start_date: null,
   due_date: null
 })
+
+// 路由参数监听
+watch(
+  [() => route.path, () => route.query.status],
+  ([newPath, newStatus]) => {
+    if (newPath === '/tasks') {
+      filterStatus.value = newStatus || ''
+      fetchTasks()
+    }
+  },
+  { immediate: true }
+)
 
 // 重置表单函数
 const resetForm = () => {
@@ -172,20 +214,6 @@ const resetForm = () => {
     status: '待办',
     start_date: null,
     due_date: null
-  }
-}
-
-// 获取任务列表
-const fetchTasks = async () => {
-  try {
-    console.log('开始获取任务列表')
-    const response = await axios.get('/api/tasks')
-    console.log('获取到的任务数据:', response.data)
-    tasks.value = [...response.data]
-    console.log('更新后的任务列表:', tasks.value)
-  } catch (error) {
-    console.error('获取任务列表失败:', error)
-    ElMessage.error('获取任务列表失败')
   }
 }
 
@@ -287,6 +315,11 @@ const handleDialogClose = () => {
   currentTaskId.value = null
 }
 
+// 添加返回首页方法
+const backToHome = () => {
+  router.push('/')
+}
+
 onMounted(() => {
   fetchTasks()
 })
@@ -371,5 +404,12 @@ onMounted(() => {
 :deep(.el-button) {
   border-radius: 8px;
   padding: 8px 20px;
+}
+
+.status-filter {
+  font-size: 16px;
+  color: #909399;
+  margin-left: 8px;
+  font-weight: normal;
 }
 </style> 
