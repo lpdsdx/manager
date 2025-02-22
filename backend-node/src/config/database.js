@@ -19,6 +19,7 @@ function initDatabase() {
       title TEXT NOT NULL,
       description TEXT,
       status TEXT DEFAULT '待办',
+      start_date TEXT,
       due_date TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -48,29 +49,32 @@ function insertTestData() {
           title: '学习Vue',
           description: '掌握Vue3核心语法',
           status: '进行中',
+          start_date: '2024-02-20',
           due_date: '2024-02-28'
         },
         {
           title: '完成项目',
           description: '实现所有基本功能',
           status: '待办',
+          start_date: '2024-03-01',
           due_date: '2024-03-15'
         },
         {
           title: '编写文档',
           description: '完成项目文档编写',
           status: '已完成',
+          start_date: '2024-02-25',
           due_date: '2024-03-01'
         }
       ]
 
       const stmt = db.prepare(`
-        INSERT INTO tasks (title, description, status, due_date)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO tasks (title, description, status, start_date, due_date)
+        VALUES (?, ?, ?, ?, ?)
       `)
 
       testTasks.forEach(task => {
-        stmt.run([task.title, task.description, task.status, task.due_date])
+        stmt.run([task.title, task.description, task.status, task.start_date, task.due_date])
       })
 
       stmt.finalize()
